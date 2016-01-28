@@ -4,6 +4,17 @@ our $command = 'translate-bin';
 
 constant DEBUG = %*ENV<MANGLE_DEBUG>;
 
+sub check-version {
+  my $version = run 'translate-bin', '-v', :out;
+  unless $version.out.get ~~ 'translate version 0.99' {
+    say "Please install libtranslate";
+    say "On Ubuntu: sudo apt-get install libtranslate-bin";
+    say "On Fedora: dnf install libtranslate";
+    say "Source is available at http://www.nongnu.org/libtranslate/";
+    exit 1;
+  }
+}
+
 multi sub translate($text) {
   state $fwd = False; $fwd = !$fwd;
   state $lang = 'fr'; if $fwd.so { $lang = <fr es de ru>.pick }
@@ -32,4 +43,7 @@ multi sub translate($text, $lang, $fwd where *.not) {
   return $result;
 }
 
-sub mangle($text) is export { say (translate($text) xx 10)[* - 1] }
+sub mangle($text) is export {
+  check-version();
+  say (translate($text) xx 10)[* - 1];
+}
